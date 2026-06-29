@@ -114,7 +114,7 @@ async gerarTexto(prompt: string): Promise<string> {
         };
     }
 
-        const resposta = await fetch(this.apiUrl, {
+        const resposta = await fetch(urlDestino, {
             method: 'POST',
             headers: headersConfig,
             body: JSON.stringify(corpoRequisicao),
