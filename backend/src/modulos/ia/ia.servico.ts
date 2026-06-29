@@ -112,12 +112,32 @@ async gerarTexto(prompt: string): Promise<string> {
                 'Authorization': `Bearer ${this.apiKey}`
             };
         }
-
+/*
         const resposta = await fetch(urlDestino, {
             method: 'POST',
             headers: headersConfig,
             body: JSON.stringify(corpoRequisicao),
-        });
+        });*/
+        const resposta = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${this.apiKey}`,
+            {
+                method: "POST",
+                headers: {
+                "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                contents: [
+                    {
+                    parts: [
+                        {
+                        text: prompt,
+                        },
+                    ],
+                    },
+                ],
+                }),
+            }
+        );
         console.log("foda")
         if (!resposta.ok) {
             const corpoErro = await resposta.text();
