@@ -1,5 +1,5 @@
 import 'dotenv/config'; // Carrega as variáveis do .env para o process.env
-
+import { GoogleGenAI } from "@google/genai";
 /**
  * Representa uma mensagem enviada para uma API de IA compatível
  * com o padrão Chat Completions.
@@ -54,11 +54,20 @@ class IaServico {
     private readonly apiKey: string;
     private readonly modelo: string;
 
+
+    private readonly ai: GoogleGenAI;
+
     constructor() {
         this.apiUrl = process.env.AI_API_URL || 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions';
         this.apiKey = process.env.AI_API_KEY || 'AQ.Ab8RN6LSaRsmm3BKWO9Z2Yte95O0UMhN-qFZBWRb2IWVzGs7FA';
         this.modelo = process.env.AI_MODEL || 'gemini-2.5-flash';
+        this.ai = new GoogleGenAI({
+                apiKey: this.apiKey,
+            });
 
+        console.log("API KEY:", this.apiKey);
+        console.log("Tamanho:", this.apiKey.length);
+       
         if (!this.apiKey) {
             throw new Error('Variável de ambiente AI_API_KEY não configurada.');
         }
@@ -96,48 +105,21 @@ async gerarTexto(prompt: string): Promise<string> {
         ],
     };
 
-        // foi adicionado uma comunicação para funcionar diretamente com gemini
-        let urlDestino = this.apiUrl;
-        let headersConfig: HeadersInit;
+    const promptFinal = corpoRequisicao.messages
+    .map(mensagem => `[${mensagem.role.toUpperCase()}]\n${mensagem.content}`)
+    .join("\n\n");
 
-        if (this.apiUrl.includes('generativelanguage.googleapis.com')) {
-            headersConfig = {
-                'Content-Type': 'application/json',
-                'Authorization': `ApiKey ${this.apiKey}`
-            };
-        } else {
-            // Para outros provedores (Ollama, OpenRouter, etc.):
-            headersConfig = {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${this.apiKey}`
-            };
-        }
 /*
         const resposta = await fetch(urlDestino, {
             method: 'POST',
             headers: headersConfig,
             body: JSON.stringify(corpoRequisicao),
         });*/
-        const resposta = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${this.apiKey}`,
-            {
-                method: "POST",
-                headers: {
-                "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                contents: [
-                    {
-                    parts: [
-                        {
-                        text: prompt,
-                        },
-                    ],
-                    },
-                ],
-                }),
-            }
-        );
+        /*
+        const resposta = await this.ai.models.generateContent({
+            model: corpoRequisicao.model,
+            contents: promptFinal,
+        });
         console.log("foda")
         if (!resposta.ok) {
             const corpoErro = await resposta.text();
@@ -145,8 +127,42 @@ async gerarTexto(prompt: string): Promise<string> {
             throw new Error(
                 `Erro ao chamar serviço de IA. Status: ${resposta.status}. Detalhes: ${corpoErro}`,
             );
+        }*/
+       try {
+        console.log("teste")
+        const resposta = await this.ai.models.generateContent({
+            model: corpoRequisicao.model,
+            contents: promptFinal,
+        });
+
+        if (!resposta.text) {
+            throw new Error("Resposta da IA veio vazia.");
+        }
+        const corpo: RespostaIa = {
+            choices: [
+                {
+                    message: {
+                        content: resposta.text ?? "",
+                    },
+                },
+            ],
+        };
+       const conteudo = corpo.choices?.[0]?.message?.content;
+
+        if (!conteudo) {
+            throw new Error("Resposta da IA veio vazia ou em formato inválido.");
         }
 
+        return conteudo;
+
+    } catch (erro) {
+        throw new Error(
+            `Erro ao chamar serviço de IA: ${
+                erro instanceof Error ? erro.message : String(erro)
+            }`
+        );
+    }
+/*
         const corpo = (await resposta.json()) as RespostaIa;
 
         const conteudo = corpo.choices?.[0]?.message?.content;
@@ -155,7 +171,7 @@ async gerarTexto(prompt: string): Promise<string> {
             throw new Error('Resposta da IA veio vazia ou em formato inválido.');
         }
 
-        return conteudo;
+        return conteudo;*/
     };
 
     /**
