@@ -14,7 +14,7 @@ import 'dotenv/config';
 
 const app = express();
 
-const MONGO_URI ="mongodb+srv://notebookifsudestemg_db_user:v7rWEWx3iZErGhgo@pos.lcyiojc.mongodb.net/?appName=pos"
+const MONGO_URI ="mongodb+srv://notebookifsudestemg_db_user:v7rWEWx3iZErGhgo@pos.lcyiojc.mongodb.net/meuplanoai?appName=pos"
 
 async function iniciarServidor() {
   try {
