@@ -97,22 +97,22 @@ class IaServico {
             ],
         };
 
+        // foi adicionado uma comunicação para funcionar diretamente com gemini
+        let urlDestino = this.apiUrl;
+        const cabeçalhos: HeadersInit = {
+            'Content-Type': 'application/json',
+        };
+
+        if (this.apiUrl.includes('generativelanguage.googleapis.com')) {
+            urlDestino = `${this.apiUrl}?key=${this.apiKey}`;
+        } else {
+            // Se for outro provedor compatível com OpenAI, envia pelo cabeçalho padrão
+            cabeçalhos['Authorization'] = `Bearer ${this.apiKey}`;
+        }
+
         const resposta = await fetch(this.apiUrl, {
             method: 'POST',
-            headers: {
-                /**
-                 * Informa que estamos enviando JSON no corpo da requisição.
-                 */
-                'Content-Type': 'application/json',
-
-                /**
-                 * Envia a chave no formato Bearer Token.
-                 *
-                 * Mesmo quando usamos Ollama local com chave fictícia,
-                 * manter esse cabeçalho simula uma API real.
-                 */
-                Authorization: `Bearer ${this.apiKey}`,
-            },
+            headers: cabeçalhos,
             body: JSON.stringify(corpoRequisicao),
         });
         console.log("foda")
