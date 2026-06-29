@@ -80,44 +80,43 @@ class IaServico {
     * @throws Error Caso a API de IA retorne erro HTTP.
     * @throws Error Caso a resposta da IA venha vazia ou em formato inesperado.
     */
-    async gerarTexto(prompt: string): Promise<string> {
-        const corpoRequisicao: RequisicaoIa & { response_format?: { type: string } } = {
-            model: this.modelo,
-            temperature: 0.2,
-            messages: [
-                {
-                    role: 'system',
-                    content:
-                        'Você é um assistente pedagógico especializado em planejamento de uma única aula.',
-                },
-                {
-                    role: 'user',
-                    content: prompt,
-                },
-            ],
-        };
+async gerarTexto(prompt: string): Promise<string> {
+    const corpoRequisicao: RequisicaoIa & { response_format?: { type: string } } = {
+        model: this.modelo,
+        temperature: 0.2,
+        messages: [
+            {
+                role: 'system',
+                content: 'Você é um assistente pedagógico especializado em planejamento de uma única aula.',
+            },
+            {
+                role: 'user',
+                content: prompt,
+            },
+        ],
+    };
 
         // foi adicionado uma comunicação para funcionar diretamente com gemini
         let urlDestino = this.apiUrl;
-        const headers: Record<string, string> = {
-            'Content-Type': 'application/json',
-        };
+        let headersConfig: HeadersInit;
 
-        // 🔥 Ajuste cirúrgico aqui:
         if (this.apiUrl.includes('generativelanguage.googleapis.com')) {
-            // 1. Injeta a chave estritamente na URL
-            urlDestino = `${this.apiUrl}?key=${this.apiKey}`;
-            
-            // 2. Garantimos que o cabeçalho Authorization NÃO VAI na requisição (evita o erro 400)
-            delete headers['Authorization'];
-        } else {
-            // Se for outro provedor (Ollama, OpenRouter, etc.), usa o Bearer Token padrão
-            headers['Authorization'] = `Bearer ${this.apiKey}`;
-        }
+        // Para o Gemini oficial: Injeta na URL e NÃO coloca NADA de Authorization aqui
+        urlDestino = `${this.apiUrl}?key=${this.apiKey}`;
+        headersConfig = {
+            'Content-Type': 'application/json'
+        };
+    } else {
+        // Para outros provedores (Ollama, OpenRouter, etc.): Usa o formato padrão
+        headersConfig = {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${this.apiKey}`
+        };
+    }
 
         const resposta = await fetch(this.apiUrl, {
             method: 'POST',
-            headers: headers,
+            headers: headersConfig,
             body: JSON.stringify(corpoRequisicao),
         });
         console.log("foda")
