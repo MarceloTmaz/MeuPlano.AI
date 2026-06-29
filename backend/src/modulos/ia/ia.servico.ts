@@ -101,18 +101,17 @@ async gerarTexto(prompt: string): Promise<string> {
         let headersConfig: HeadersInit;
 
         if (this.apiUrl.includes('generativelanguage.googleapis.com')) {
-        // Para o Gemini oficial: Injeta na URL e NÃO coloca NADA de Authorization aqui
-        urlDestino = `${this.apiUrl}?key=${this.apiKey}`;
-        headersConfig = {
-            'Content-Type': 'application/json'
-        };
-    } else {
-        // Para outros provedores (Ollama, OpenRouter, etc.): Usa o formato padrão
-        headersConfig = {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${this.apiKey}`
-        };
-    }
+            headersConfig = {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${this.apiKey}`
+            };
+        } else {
+            // Para outros provedores (Ollama, OpenRouter, etc.):
+            headersConfig = {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${this.apiKey}`
+            };
+        }
 
         const resposta = await fetch(urlDestino, {
             method: 'POST',
