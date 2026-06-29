@@ -1,3 +1,5 @@
+import 'dotenv/config'; // Carrega as variáveis do .env para o process.env
+
 /**
  * Representa uma mensagem enviada para uma API de IA compatível
  * com o padrão Chat Completions.
@@ -53,9 +55,9 @@ class IaServico {
     private readonly modelo: string;
 
     constructor() {
-        this.apiUrl = process.env.AI_API_URL || '';
-        this.apiKey = process.env.AI_API_KEY || '';
-        this.modelo = process.env.AI_MODEL || '';
+        this.apiUrl = process.env.AI_API_URL || 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions';
+        this.apiKey = process.env.AI_API_KEY || 'AQ.Ab8RN6LSaRsmm3BKWO9Z2Yte95O0UMhN-qFZBWRb2IWVzGs7FA';
+        this.modelo = process.env.AI_MODEL || 'gemini-2.5-flash';
 
         if (!this.apiKey) {
             throw new Error('Variável de ambiente AI_API_KEY não configurada.');
@@ -69,7 +71,6 @@ class IaServico {
             throw new Error('Variável de ambiente AI_API_URL não configurada.');
         }
     }
-
     /**
     * Envia um prompt para o provedor de IA e retorna o texto gerado.
     *
@@ -80,7 +81,7 @@ class IaServico {
     * @throws Error Caso a resposta da IA venha vazia ou em formato inesperado.
     */
     async gerarTexto(prompt: string): Promise<string> {
-        const corpoRequisicao: RequisicaoIa = {
+        const corpoRequisicao: RequisicaoIa & { response_format?: { type: string } } = {
             model: this.modelo,
             temperature: 0.2,
             messages: [
@@ -114,7 +115,7 @@ class IaServico {
             },
             body: JSON.stringify(corpoRequisicao),
         });
-
+        console.log("foda")
         if (!resposta.ok) {
             const corpoErro = await resposta.text();
 
