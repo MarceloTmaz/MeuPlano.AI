@@ -103,7 +103,7 @@ async gerarTexto(prompt: string): Promise<string> {
         if (this.apiUrl.includes('generativelanguage.googleapis.com')) {
             headersConfig = {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${this.apiKey}`
+                'Authorization': `ApiKey ${this.apiKey}`
             };
         } else {
             // Para outros provedores (Ollama, OpenRouter, etc.):
