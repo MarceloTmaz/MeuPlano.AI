@@ -99,20 +99,25 @@ class IaServico {
 
         // foi adicionado uma comunicação para funcionar diretamente com gemini
         let urlDestino = this.apiUrl;
-        const cabeçalhos: HeadersInit = {
+        const headers: Record<string, string> = {
             'Content-Type': 'application/json',
         };
 
+        // 🔥 Ajuste cirúrgico aqui:
         if (this.apiUrl.includes('generativelanguage.googleapis.com')) {
+            // 1. Injeta a chave estritamente na URL
             urlDestino = `${this.apiUrl}?key=${this.apiKey}`;
+            
+            // 2. Garantimos que o cabeçalho Authorization NÃO VAI na requisição (evita o erro 400)
+            delete headers['Authorization'];
         } else {
-            // Se for outro provedor compatível com OpenAI, envia pelo cabeçalho padrão
-            cabeçalhos['Authorization'] = `Bearer ${this.apiKey}`;
+            // Se for outro provedor (Ollama, OpenRouter, etc.), usa o Bearer Token padrão
+            headers['Authorization'] = `Bearer ${this.apiKey}`;
         }
 
         const resposta = await fetch(this.apiUrl, {
             method: 'POST',
-            headers: cabeçalhos,
+            headers: headers,
             body: JSON.stringify(corpoRequisicao),
         });
         console.log("foda")
